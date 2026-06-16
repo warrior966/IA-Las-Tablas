@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat IA - Firebase & Render</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="app-header">
+      <div class="logo">
+        <h2>AI Chat App</h2>
+      </div>
+      <div class="auth-panel">
+        <span id="user-profile" class="user-profile"></span>
+        <button id="login-btn" class="btn btn-login">Iniciar Sesión con Google</button>
+        <button id="logout-btn" class="btn btn-logout" style="display: none;">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <main id="chat-area" class="chat-area">
+      <div class="placeholder-text">
+        <p>Por favor, inicia sesión con tu cuenta de Google para comenzar a chatear con la IA.</p>
+      </div>
+    </main>
+
+    <footer class="app-footer">
+      <div class="input-container">
+        <input 
+          type="text" 
+          id="message-input" 
+          placeholder="Escribe un mensaje aquí..." 
+          disabled
+        />
+        <button id="send-btn" class="btn-send" disabled>
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+          </svg>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
