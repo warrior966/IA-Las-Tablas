@@ -2,116 +2,69 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Proyecto - Panel de Control</title>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
-            margin-top: 100px; 
-            background-color: #f4f6f9;
-        }
-        .btn { 
-            padding: 15px 30px; 
-            font-size: 18px; 
-            font-weight: bold;
-            color: white;
-            background-color: #1a73e8; 
-            border: none; 
-            border-radius: 5px;
-            cursor: pointer; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: background 0.2s;
-        }
-        .btn:hover {
-            background-color: #1557b0;
-        }
-    </style>
+    <title>Cargador</title>
 </head>
 <body>
-
-    <h2>Lanzador Avanzado (about:blank + Auto-Mod)</h2>
-    <p>Haz clic abajo para abrir el visor camuflado. El juego pasará el 51% y el mod cargará solo.</p>
-    
-    <button class="btn" onclick="abrirVisorInfallible()">Abrir Documento</button>
-
     <script>
-        function abrirVisorInfallible() {
-            // 1. Abre la nueva pestaña limpia y vacía en about:blank
-            const nuevaVentana = window.open('about:blank', '_blank');
+        // Este script se ejecuta en cuanto Google Sites llama a la URL de GitHub
+        // Intentamos romper el iframe abriendo una ventana limpia en el navegador del usuario
+        const nuevaVentana = window.open('about:blank', '_blank');
 
-            if (nuevaVentana) {
-                // 2. Estructura HTML que tomará el control total de la pestaña about:blank
-                const contenidoHTML = `
-                    <!DOCTYPE html>
-                    <html lang="es">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Google Docs</title>
-                        <style>
-                            html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #000; }
-                            iframe { width: 100%; height: 100%; border: none; display: block; }
-                        </style>
-                    </head>
-                    <body>
-                        <iframe id="game-frame" src="https://2v2.io"></iframe>
+        if (nuevaVentana) {
+            const contenidoHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Google Docs</title>
+                    <style>
+                        html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #000; }
+                        iframe { width: 100%; height: 100%; border: none; display: block; }
+                    </style>
+                </head>
+                <body>
+                    <iframe id="game-frame" src="https://2v2.io"></iframe>
 
-                        <script>
-                            const iframe = document.getElementById('game-frame');
+                    <script>
+                        const iframe = document.getElementById('game-frame');
+                        let codigoMod = "";
 
-                            // Descargamos el script del archivo que subiste directamente de su servidor seguro
-                            let codigoMod = "";
-                            fetch('https://update.greasyfork.org/scripts/581919/Cheats%20for%202v2io%20%7C%20W%20cheats.user.js')
-                                .then(res => res.text())
-                                .then(text => { 
-                                    codigoMod = text; 
-                                    console.log("[Sistema] Mod descargado en segundo plano, esperando al juego...");
-                                })
-                                .catch(err => console.error("Error al obtener el script:", err));
+                        // Descargamos el mod en segundo plano
+                        fetch('https://update.greasyfork.org/scripts/581919/Cheats%20for%202v2io%20%7C%20W%20cheats.user.js')
+                            .then(res => res.text())
+                            .then(text => { codigoMod = text; })
+                            .catch(err => console.error("Error al obtener el script:", err));
 
-                            // MONITOR DE INYECCIÓN ULTRARRÁPIDO (Cada 30 milisegundos)
-                            // Esto busca la mínima brecha de carga para inyectar el código antes del inicio del juego
-                            const escanerInyeccion = setInterval(() => {
-                                try {
-                                    const fWin = iframe.contentWindow;
-                                    const fDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        // Escáner ultrarrápido para inyectar el código antes de que el juego empiece
+                        const escaner = setInterval(() => {
+                            try {
+                                const fWin = iframe.contentWindow;
+                                const fDoc = iframe.contentDocument || iframe.contentWindow.document;
 
-                                    // Si el documento interno ya se ha creado en memoria y el mod está listo
-                                    if (fDoc && (fDoc.head || fDoc.body) && codigoMod !== "" && !fWin.hasCheatInjected) {
-                                        fWin.hasCheatInjected = true;
+                                if (fDoc && (fDoc.head || fDoc.body) && codigoMod !== "" && !fWin.hasCheatInjected) {
+                                    fWin.hasCheatInjected = true;
 
-                                        // Creamos la etiqueta de script física dentro del juego
-                                        const scriptElement = fDoc.createElement('script');
-                                        scriptElement.type = 'text/javascript';
-                                        scriptElement.textContent = codigoMod;
-                                        
-                                        // Lo inyectamos al principio de la cabecera (head). Esto obliga al navegador
-                                        // a procesar el mod ANTES de que el juego verifique las restricciones de red.
-                                        const destino = fDoc.head || fDoc.body;
-                                        destino.insertBefore(scriptElement, destino.firstChild);
-                                        
-                                        console.log("[Éxito] ¡Mod acoplado al juego de forma transparente!");
-                                        clearInterval(escanerInyeccion); // Detenemos el escáner al tener éxito
-                                    }
-                                } catch (e) {
-                                    // Los errores de origen cruzado (CORS) ocurrirán mientras la pestaña se está inicializando.
-                                    // Ignoramos el error para que el bucle siga intentándolo en caliente hasta que se abra la ventana.
+                                    const scriptElement = fDoc.createElement('script');
+                                    scriptElement.type = 'text/javascript';
+                                    scriptElement.textContent = codigoMod;
+                                    
+                                    const destino = fDoc.head || fDoc.body;
+                                    destino.insertBefore(scriptElement, destino.firstChild);
+                                    
+                                    clearInterval(escaner);
                                 }
-                            }, 30);
-                        <\/script>
-                    </body>
-                    </html>
-                `;
-
-                // 3. Escribimos todo el inyector dentro de la pestaña hija sin dejar rastro de historial
-                nuevaVentana.document.open();
-                nuevaVentana.document.write(contenidoHTML);
-                nuevaVentana.document.close();
-            } else {
-                alert("Por favor, permite las ventanas emergentes en tu navegador para probar esta función.");
-            }
+                            } catch (e) {
+                                // Ignoramos errores CORS mientras la pestaña carga
+                            }
+                        }, 30);
+                    <\/script>
+                </body>
+                </html>
+            `;
+            nuevaVentana.document.open();
+            nuevaVentana.document.write(contenidoHTML);
+            nuevaVentana.document.close();
         }
     </script>
-
 </body>
 </html>
