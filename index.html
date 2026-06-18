@@ -1,48 +1,110 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat IA - Firebase & Render</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Proyecto - Panel de Control</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            margin-top: 100px; 
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        .btn { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            font-weight: bold;
+            color: white;
+            background-color: #1a73e8; 
+            border: none; 
+            border-radius: 5px;
+            cursor: pointer; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background-color: #1557b0;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <header class="app-header">
-      <div class="logo">
-        <h2>AI Chat App</h2>
-      </div>
-      <div class="auth-panel">
-        <span id="user-profile" class="user-profile"></span>
-        <button id="login-btn" class="btn btn-login">Iniciar Sesión con Google</button>
-        <button id="logout-btn" class="btn btn-logout" style="display: none;">Cerrar Sesión</button>
-      </div>
-    </header>
+    <h2>Servidor de Despliegue GitHub Pages</h2>
+    <p>Haz clic abajo para ejecutar el visor dinámico camuflado con el mod autoinyectado.</p>
+    
+    <button class="btn" onclick="abrirVisorGitHub()">Abrir Documento</button>
 
-    <main id="chat-area" class="chat-area">
-      <div class="placeholder-text">
-        <p>Por favor, inicia sesión con tu cuenta de Google para comenzar a chatear con la IA.</p>
-      </div>
-    </main>
+    <script>
+        function abrirVisorGitHub() {
+            // 1. Abre la pestaña limpia en about:blank
+            const nuevaVentana = window.open('about:blank', '_blank');
 
-    <footer class="app-footer">
-      <div class="input-container">
-        <input 
-          type="text" 
-          id="message-input" 
-          placeholder="Escribe un mensaje aquí..." 
-          disabled
-        />
-        <button id="send-btn" class="btn-send" disabled>
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
-          </svg>
-        </button>
-      </div>
-    </footer>
-  </div>
+            if (nuevaVentana) {
+                // 2. Estructura que va a gobernar la nueva pestaña
+                const contenidoHTML = `
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Google Docs</title>
+                        <style>
+                            html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #000; }
+                            iframe { width: 100%; height: 100%; border: none; display: block; }
+                        </style>
+                    </head>
+                    <body>
+                        <iframe id="game-frame" src="https://2v2.io"></iframe>
 
-  <script type="module" src="main.js"></script>
+                        <script>
+                            const iframe = document.getElementById('game-frame');
+
+                            // Descargamos el script del mod directamente desde su repositorio en tiempo real
+                            let modCodigo = "";
+                            fetch('https://update.greasyfork.org/scripts/581919/Cheats%20for%202v2io%20%7C%20W%20cheats.user.js')
+                                .then(res => res.text())
+                                .then(text => { modCodigo = text; })
+                                .catch(err => console.error("Error obteniendo mod"));
+
+                            // Escáner en caliente: inyecta el mod en el instante que el iframe abre sus compuertas
+                            const bucleInyeccion = setInterval(() => {
+                                try {
+                                    const fWin = iframe.contentWindow;
+                                    const fDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+                                    if (fDoc && fDoc.head && modCodigo !== "" && !fWin.hasCheatInjected) {
+                                        fWin.hasCheatInjected = true;
+
+                                        // Creamos la etiqueta de script interna en el juego
+                                        const scriptElement = fDoc.createElement('script');
+                                        scriptElement.type = 'text/javascript';
+                                        scriptElement.textContent = modCodigo;
+                                        
+                                        // Lo metemos antes de que el motor de red del juego empiece a verificar la sesión
+                                        fDoc.head.insertBefore(scriptElement, fDoc.head.firstChild);
+                                        
+                                        console.log("[GitHub Proxy] Mod acoplado al juego.");
+                                        clearInterval(bucleInyeccion);
+                                    }
+                                } catch (e) {
+                                    // Absorbe los bloqueos temporales mientras el juego cambia de página
+                                }
+                            }, 50);
+                        <\/script>
+                    </body>
+                    </html>
+                `;
+
+                // 3. Escribimos el entorno en la pestaña del navegador
+                nuevaVentana.document.open();
+                nuevaVentana.document.write(contenidoHTML);
+                nuevaVentana.document.close();
+            } else {
+                alert("Por favor, permite las ventanas emergentes en tu navegador.");
+            }
+        }
+    </script>
+
 </body>
 </html>
