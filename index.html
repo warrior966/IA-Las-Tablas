@@ -57,30 +57,30 @@
                         <div id="cargando">Preparando entorno seguro...</div>
 
                         <script>
-                            // Bypass de origen: Descargamos la web original del juego directamente a la pestaña
-                            fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://2v2.io'))
+                            // Bypass de origen: Descargamos la web original de Meeland directamente a la pestaña
+                            fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://meeland.io'))
                                 .then(response => response.text())
                                 .then(html => {
                                     // Limpiamos el mensaje de carga
                                     document.getElementById('cargando').remove();
                                     
                                     // Corregimos las rutas de los archivos del juego (imágenes, scripts y estilos) 
-                                    // para que apanten a los servidores originales de 2v2.io y no se quede en negro
-                                    let htmlCorregido = html.replace(/(src|href)="\\//g, '$1="https://2v2.io/');
-                                    htmlCorregido = htmlCorregido.replace(/url\\(['"]?\\//g, "url('https://2v2.io/");
+                                    // para que apunten a los servidores originales de meeland.io
+                                    let htmlCorregido = html.replace(/(src|href)="\\//g, '$1="https://meeland.io/');
+                                    htmlCorregido = htmlCorregido.replace(/url\\(['"]?\\//g, "url('https://meeland.io/");
 
                                     // Escribimos el juego en la pestaña de forma nativa
                                     document.open();
                                     document.write(htmlCorregido);
 
-                                    // Descargamos el mod desde su repositorio y lo acoplamos al juego antes de terminar
-                                    fetch('https://update.greasyfork.org/scripts/581919/Cheats%20for%202v2io%20%7C%20W%20cheats.user.js')
+                                    // Descargamos el mod Enhancement Suite desde su repositorio y lo acoplamos al juego antes de terminar
+                                    fetch('https://update.greasyfork.org/scripts/561477/Meeland%20Enhancement%20Suite.user.js')
                                         .then(resMod => resMod.text())
                                         .then(modCode => {
                                             const scriptMod = document.createElement('script');
                                             scriptMod.textContent = modCode;
                                             document.body.appendChild(scriptMod);
-                                            console.log("¡Mod inyectado automáticamente con éxito!");
+                                            console.log("¡Mod de Meeland inyectado automáticamente!");
                                         });
 
                                     document.close();
