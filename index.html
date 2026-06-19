@@ -2,55 +2,106 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Cargador Seguro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Proyecto - Panel de Control</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            margin-top: 100px; 
+            background-color: #f4f6f9;
+        }
+        .btn { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            font-weight: bold;
+            color: white;
+            background-color: #1a73e8; 
+            border: none; 
+            border-radius: 5px;
+            cursor: pointer; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background-color: #1557b0;
+        }
+    </style>
 </head>
 <body>
+
+    <h2>Carga Completa y Autoinyección Directa</h2>
+    <p>Haz clic abajo para abrir el juego camuflado con el mod ya integrado.</p>
+    
+    <button class="btn" onclick="abrirVisorExterno()">Abrir Documento</button>
+
     <script>
-        // 1. Descargamos el código del mod directamente desde GitHub a la memoria
-        fetch('https://update.greasyfork.org/scripts/581919/Cheats%20for%202v2io%20%7C%20W%20cheats.user.js')
-            .then(res => res.text())
-            .then(codigoMod => {
-                
-                // 2. Creamos un documento virtual completo donde el mod se ejecuta ANTES que el juego
-                const documentoVirtual = `
+        function abrirVisorExterno() {
+            // 1. Abrimos una pestaña limpia about:blank
+            const nuevaVentana = window.open('about:blank', '_blank');
+
+            if (nuevaVentana) {
+                // 2. Definimos la estructura base que tendrá la pestaña para saltarse la seguridad
+                const contenidoHTML = `
                     <!DOCTYPE html>
-                    <html>
+                    <html lang="es">
                     <head>
-                        <meta charset="utf-8">
+                        <meta charset="UTF-8">
                         <title>Google Docs</title>
-                        <style>html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#000; }</style>
-                        <base href="https://2v2.io/">
+                        <style>
+                            html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #000; }
+                            #cargando { color: #fff; font-family: sans-serif; text-align: center; margin-top: 20%; font-size: 24px; }
+                        </style>
                     </head>
                     <body>
-                        <script>${codigoMod}<\/script>
-                        
+                        <div id="cargando">Preparando entorno seguro...</div>
+
                         <script>
+                            // Bypass de origen: Descargamos la web original del juego directamente a la pestaña
                             fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://2v2.io'))
-                                .then(r => r.text())
+                                .then(response => response.text())
                                 .then(html => {
+                                    // Limpiamos el mensaje de carga
+                                    document.getElementById('cargando').remove();
+                                    
+                                    // Corregimos las rutas de los archivos del juego (imágenes, scripts y estilos) 
+                                    // para que apanten a los servidores originales de 2v2.io y no se quede en negro
+                                    let htmlCorregido = html.replace(/(src|href)="\\//g, '$1="https://2v2.io/');
+                                    htmlCorregido = htmlCorregido.replace(/url\\(['"]?\\//g, "url('https://2v2.io/");
+
+                                    // Escribimos el juego en la pestaña de forma nativa
                                     document.open();
-                                    document.write(html);
+                                    document.write(htmlCorregido);
+
+                                    // Descargamos el mod desde su repositorio y lo acoplamos al juego antes de terminar
+                                    fetch('https://update.greasyfork.org/scripts/581919/Cheats%20for%202v2io%20%7C%20W%20cheats.user.js')
+                                        .then(resMod => resMod.text())
+                                        .then(modCode => {
+                                            const scriptMod = document.createElement('script');
+                                            scriptMod.textContent = modCode;
+                                            document.body.appendChild(scriptMod);
+                                            console.log("¡Mod inyectado automáticamente con éxito!");
+                                        });
+
                                     document.close();
+                                })
+                                .catch(err => {
+                                    document.getElementById('cargando').innerText = "Error al conectar con el servidor del juego.";
                                 });
                         <\/script>
                     </body>
                     </html>
                 `;
 
-                // 3. Abrimos la pestaña about:blank
-                const nuevaVentana = window.open('about:blank', '_blank');
-
-                if (nuevaVentana) {
-                    // 4. Volcamos el documento virtual completo. 
-                    // Al no usar un iframe directo, el juego y el mod nacen en el mismo sitio y el mod funciona.
-                    nuevaVentana.document.open();
-                    nuevaVentana.document.write(documentoVirtual);
-                    nuevaVentana.document.close();
-                } else {
-                    alert("Por favor, permite las ventanas emergentes.");
-                }
-            })
-            .catch(err => alert("Error al conectar con el servidor del mod. Verifica tu conexión."));
+                // 3. Inyectamos las instrucciones de construcción en la ventana hija
+                nuevaVentana.document.open();
+                nuevaVentana.document.write(contenidoHTML);
+                nuevaVentana.document.close();
+            } else {
+                alert("Por favor, permite las ventanas emergentes en tu navegador.");
+            }
+        }
     </script>
+
 </body>
 </html>
