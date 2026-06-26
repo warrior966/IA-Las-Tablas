@@ -3,105 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Proyecto - Panel de Control</title>
+    <title>Selección de Rol - AeroRP</title>
+    <!-- Cliente de Socket.io (Asegúrate de que el backend esté corriendo en el puerto 3000) -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
-            margin-top: 100px; 
-            background-color: #f4f6f9;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
         }
-        .btn { 
-            padding: 15px 30px; 
-            font-size: 18px; 
+        .container {
+            background: #162447;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 350px;
+        }
+        h2 { margin-bottom: 25px; color: #e43f5a; }
+        .btn-rol {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
             font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #1f4068;
             color: white;
-            background-color: #1a73e8; 
-            border: none; 
-            border-radius: 5px;
-            cursor: pointer; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: background 0.2s;
         }
-        .btn:hover {
-            background-color: #1557b0;
+        .btn-rol:hover:not(:disabled) { background: #e43f5a; }
+        .btn-rol:disabled {
+            background: #0f172a;
+            color: #64748b;
+            cursor: not-allowed;
+            border: 1px solid #334155;
         }
+        .status { margin-top: 15px; font-size: 14px; color: #00f2fe; }
     </style>
 </head>
 <body>
 
-    <h2>Carga Completa y Autoinyección Directa</h2>
-    <p>Haz clic abajo para abrir el juego camuflado con el mod ya integrado.</p>
+<div class="container">
+    <h2>Selecciona tu Rol</h2>
     
-    <button class="btn" onclick="abrirVisorExterno()">Abrir Documento</button>
+    <button class="btn-rol" id="btn-Host" onclick="elegirRol('Host')">🏢 Ser Host (Libre)</button>
+    <button class="btn-rol" id="btn-Capitan" onclick="elegirRol('Capitan')">👨‍✈️ Ser Capitán (Libre)</button>
+    <button class="btn-rol" id="btn-Copiloto" onclick="elegirRol('Copiloto')">🧑‍✈️ Ser Copiloto (Libre)</button>
+    
+    <div class="status" id="status-txt">Conectando al aeropuerto...</div>
+</div>
 
-    <script>
-        function abrirVisorExterno() {
-            // 1. Abrimos una pestaña limpia about:blank
-            const nuevaVentana = window.open('about:blank', '_blank');
+<script>
+    // Conectar al servidor Backend de Node.js
+    const socket = io('http://localhost:3000');
+    let miRolActual = null;
 
-            if (nuevaVentana) {
-                // 2. Definimos la estructura base que tendrá la pestaña para saltarse la seguridad
-                const contenidoHTML = `
-                    <!DOCTYPE html>
-                    <html lang="es">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>Google Docs</title>
-                        <style>
-                            html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #000; }
-                            #cargando { color: #fff; font-family: sans-serif; text-align: center; margin-top: 20%; font-size: 24px; }
-                        </style>
-                    </head>
-                    <body>
-                        <div id="cargando">Preparando entorno seguro...</div>
+    // Escuchar el estado de los roles enviado por el servidor
+    socket.on('estado_roles', (rolesOcupados) => {
+        document.getElementById('status-txt').innerText = "Conectado. Selecciona un rol disponible.";
+        
+        actualizarBoton('Host', rolesOcupados.Host);
+        actualizarBoton('Capitan', rolesOcupados.Capitan);
+        actualizarBoton('Copiloto', rolesOcupados.Copiloto);
+    });
 
-                        <script>
-                            // Bypass de origen: Descargamos la web original de Meeland directamente a la pestaña
-                            fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://meeland.io'))
-                                .then(response => response.text())
-                                .then(html => {
-                                    // Limpiamos el mensaje de carga
-                                    document.getElementById('cargando').remove();
-                                    
-                                    // Corregimos las rutas de los archivos del juego (imágenes, scripts y estilos) 
-                                    // para que apunten a los servidores originales de meeland.io
-                                    let htmlCorregido = html.replace(/(src|href)="\\//g, '$1="https://meeland.io/');
-                                    htmlCorregido = htmlCorregido.replace(/url\\(['"]?\\//g, "url('https://meeland.io/");
-
-                                    // Escribimos el juego en la pestaña de forma nativa
-                                    document.open();
-                                    document.write(htmlCorregido);
-
-                                    // Descargamos el mod Enhancement Suite desde su repositorio y lo acoplamos al juego antes de terminar
-                                    fetch('https://update.greasyfork.org/scripts/561477/Meeland%20Enhancement%20Suite.user.js')
-                                        .then(resMod => resMod.text())
-                                        .then(modCode => {
-                                            const scriptMod = document.createElement('script');
-                                            scriptMod.textContent = modCode;
-                                            document.body.appendChild(scriptMod);
-                                            console.log("¡Mod de Meeland inyectado automáticamente!");
-                                        });
-
-                                    document.close();
-                                })
-                                .catch(err => {
-                                    document.getElementById('cargando').innerText = "Error al conectar con el servidor del juego.";
-                                });
-                        <\/script>
-                    </body>
-                    </html>
-                `;
-
-                // 3. Inyectamos las instrucciones de construcción en la ventana hija
-                nuevaVentana.document.open();
-                nuevaVentana.document.write(contenidoHTML);
-                nuevaVentana.document.close();
+    // Función para modificar visualmente los botones si están llenos
+    function actualizarBoton(nombreRol, ocupadoPorId) {
+        const boton = document.getElementById(`btn-${nombreRol}`);
+        
+        if (ocupadoPorId !== null) {
+            if (ocupadoPorId === socket.id) {
+                boton.innerText = `✅ Eres el ${nombreRol}`;
+                boton.disabled = true;
+                boton.style.background = "#10b981"; // Verde éxito
             } else {
-                alert("Por favor, permite las ventanas emergentes en tu navegador.");
+                boton.innerText = `❌ ${nombreRol} (Ocupado)`;
+                boton.disabled = true;
             }
+        } else {
+            // Si está libre y el jugador no tiene otro rol asignado
+            boton.disabled = miRolActual !== null;
+            if (nombreRol === 'Host') boton.innerText = "🏢 Ser Host";
+            if (nombreRol === 'Capitan') boton.innerText = "👨‍✈️ Ser Capitán";
+            if (nombreRol === 'Copiloto') boton.innerText = "🧑‍✈️ Ser Copiloto";
+            boton.style.background = ""; // Restaurar color original
         }
-    </script>
+    }
+
+    // Enviar petición al servidor para tomar el rol
+    function elegirRol(rol) {
+        socket.emit('solicitar_rol', rol);
+    }
+
+    // Escuchar la respuesta directa del servidor
+    socket.on('resultado_rol', (respuesta) => {
+        if (respuesta.exito) {
+            miRolActual = respuesta.rol;
+            document.getElementById('status-txt').innerText = `¡Rol asignado con éxito! Iniciando sistemas 3D...`;
+            document.getElementById('status-txt').style.color = "#10b981";
+            
+            // NOTA: Aquí es donde disparas la función para cargar Three.js / el Avión 3D
+            // arrancarCabina3D();
+        } else {
+            alert(respuesta.mensaje);
+        }
+    });
+</script>
 
 </body>
 </html>
