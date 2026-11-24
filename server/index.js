@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import express from 'express'; import cors from 'cors'; import rateLimit from 'express-rate-limit'; import multer from 'multer'; import OpenAI from 'openai'; import admin from 'firebase-admin'; import pdf from 'pdf-parse/lib/pdf-parse.js'; import mammoth from 'mammoth'; import path from 'node:path'; import {fileURLToPath} from 'node:url';
+import express from 'express'; import cors from 'cors'; import rateLimit from 'express-rate-limit'; import multer from 'multer'; import OpenAI from 'openai'; import admin from 'firebase-admin'; import pdf from 'pdf-parse'; import mammoth from 'mammoth'; import path from 'node:path'; import {fileURLToPath} from 'node:url';
 const app=express(), PORT=process.env.PORT||10000; app.use(cors()); app.use(express.json({limit:'2mb'})); app.use('/api/',rateLimit({windowMs:60000,limit:40}));
 let db=null; try { if(process.env.FIREBASE_SERVICE_ACCOUNT){const sa=JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);if(!admin.apps.length)admin.initializeApp({credential:admin.credential.cert(sa)});db=admin.firestore();} } catch(e){console.error('Firebase config:',e.message);}
 const openai=new OpenAI({apiKey:process.env.OPENAI_API_KEY}), upload=multer({storage:multer.memoryStorage(),limits:{fileSize:12*1024*1024,files:1}});
